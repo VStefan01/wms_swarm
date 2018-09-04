@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on: 
+      - app
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/cert:/cert
+      - ./LOG_nginx:/var/log/nginx/
+  
+  mysql:
+    image: mysql:8
+    volumes:
+      - ./DATA:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: wms
+
+  app:
+    image: wms/app:latest
+    depends_on: 
+      - mysql
+    volumes:
+      - ./LOG_app:/var/log
+
