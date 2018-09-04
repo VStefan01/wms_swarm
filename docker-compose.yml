@@ -20,6 +20,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: admin
       MYSQL_DATABASE: wms
+      MYSQL_USER: stefan
+      MYSQL_PASSWORD: passwd
 
   app:
     image: wms/app:latest

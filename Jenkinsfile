@@ -85,10 +85,10 @@ pipeline {
         stage('Image Build') {
             //agent { label 'master'}
             steps {
-                dir('/opt/wms_app/wms_swarm') {
+                dir('/opt/wms_app/wms-swarm') {
                     unstash 'dockerConfig'
                 }
-                dir('/opt/wms_app/wms_swarm/app') {
+                dir('/opt/wms_app/wms-swarm/app') {
                         unstash 'appPackage'
                         sh "docker build -t $IMAGE_NAME -f Dockerfile-app ."
                         sh "docker build -t $IMAGE_NAME:$GIT_COMMIT -f Dockerfile-app ."
@@ -100,14 +100,14 @@ pipeline {
         stage('Deploy') {
             //agent { label 'master'}
             steps {
-                dir('/opt/wms_app/wms_swarm') {
-                    sh "docker-compose up -d --no-recreate"
+                dir('/opt/wms_app/wms-swarm') {
+                    sh "docker stack deploy -c docker-compose.yml WMS"
                 }
             }
         }
     }
     
-    post {
+    /*post {
         success {
             sendEmail("Successful");
         }
@@ -117,7 +117,7 @@ pipeline {
         failure {
             sendEmail("Failed");
         }
-    }
+    }*/
 }
 
 def getGitCommit() {
