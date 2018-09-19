@@ -53,7 +53,7 @@ pipeline {
         
         stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 3, unit: 'MINUTES') {
                         script {
                             def qg = waitForQualityGate()
                             if (qg.status != 'OK') {
@@ -70,18 +70,10 @@ pipeline {
                 archiveArtifacts '**/target/*.jar'
                 fingerprint '**/target/*.jar'
                 stash includes: '**/target/*.jar', name: 'appPackage'
-                stash includes: 'app/**/*, database/**/*, nginx/**/*, docker-compose.yml' , name: 'dockerConfig'
+                stash includes: 'app/**/*, database/**/*, nginx/**/*, docker-compose.yml, deployWMS.sh' , name: 'dockerConfig'
             }
         }
-        
-        stage('Container and Image Prune') {
-            //agent { label 'master'}
-            steps {
-                containerPrune()
-                imagePrune()
-            }
-        }
-        
+
         stage('Image Build') {
             //agent { label 'master'}
             steps {
@@ -100,9 +92,7 @@ pipeline {
         stage('Deploy') {
             //agent { label 'master'}
             steps {
-                dir('/opt/wms_app/wms-swarm') {
-                    sh "docker stack deploy -c docker-compose.yml WMS"
-                }
+                sh "/opt/wms_app/wms-swarm/deployWMS.sh"
             }
         }
     }
@@ -131,7 +121,7 @@ def getGitCommit() {
     return versionNumber
 }
 
-def containerPrune(){
+/*def containerPrune(){
     try {
         sh "docker container rm -f $CONTAINER_NAME"
     } catch(error){}
@@ -142,7 +132,17 @@ def imagePrune() {
         sh "docker image rm -f $IMAGE_NAME"
         sh "docker image rm -f $IMAGE_NAME:$GIT_COMMIT"
     } catch(error){}
-}
+}*/
+
+/*def updateApplication() {
+    def serviceUp = sh(script: 'docker service ls | grep WMS | echo $?', returnStdout: true)
+    print "serviceUp value is ${serviceUp}"
+    if (serviceUp == "0") {
+        sh 'docker service update --force --image wms/app WMS';
+    } else {
+        sh 'docker stack deploy -c docker-compose.yml WMS';
+    }
+}*/
 
 def sendEmail(status) {
     mail(
